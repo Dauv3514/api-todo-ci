@@ -1,6 +1,6 @@
-# API TODO - CI/CD[![CI/CD Pipeline](https://github.com/Dauv3514/api-todo-
-ci/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Dauv3514/api-
-todo-ci/actions/workflows/ci-cd.yml)
+# API TODO - CI/CD
+
+[![CI/CD Pipeline](https://github.com/Dauv3514/api-todo-ci/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Dauv3514/api-todo-ci/actions/workflows/ci-cd.yml)
 API TODO avec déploiement automatique via GitHub Actions et Render.
 ## Fonctionnalités
 - CRUD complet pour les todos
