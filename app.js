@@ -11,18 +11,20 @@ let nextId = 3;
 // ========== ROUTES ==========
 // GET / - Page d'accueil
 app.get('/', (req, res) => {
-    res.json({
-        message: 'API TODO - Déploiement Automatique Fonctionne !',
-        endpoints: {
-            'GET /todos': 'Liste des todos',
-            'GET /todos/:id': 'Un todo spécifique',
-            'POST /todos': 'Créer un todo',
-            'PUT /todos/:id': 'Modifier un todo',
-            'DELETE /todos/:id': 'Supprimer un todo',
-            'GET /health': 'Status de l\'API'
-        },
-        version: '1.0.0'
-    });
+  const env = process.env.NODE_ENV || 'development';
+  res.json({
+    message: 'API TODO - CI/CD Demo',
+    environment: env, // ← AJOUT
+    version: '1.0.0',
+    endpoints: {
+      'GET /todos': 'Liste des todos',
+      'GET /todos/:id': 'Un todo spécifique',
+      'POST /todos': 'Créer un todo',
+      'PUT /todos/:id': 'Modifier un todo',
+      'DELETE /todos/:id': 'Supprimer un todo',
+      'GET /health': "Status de l'API"
+    }
+  });
 });
 // GET /todos - Récupérer tous les todos
 app.get('/todos', (req, res) => {
