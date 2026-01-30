@@ -35,7 +35,7 @@ jobs:
     if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
     environment:
       name: staging
-      url: https://api-todo-VOTRE-PRENOM-staging.onrender.com
+      url: https://api-todo-valentin-dauvier-staging.onrender.com
     steps:
       - name: Trigger Staging Deploy
         run: |
@@ -54,7 +54,7 @@ jobs:
 
       - name: Health check Staging
         run: |
-          response=$(curl -s -o /dev/null -w "%{http_code}" https://api-todo-VOTRE-PRENOM-staging.onrender.com/health)
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://api-todo-valentin-dauvier-staging.onrender.com/health)
           if [ "$response" -eq 200 ]; then
             echo "Staging is healthy"
           else
@@ -69,7 +69,7 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:
       name: production
-      url: https://api-todo-VOTRE-PRENOM-prod.onrender.com
+      url: https://api-todo-valentin-dauvier-prod.onrender.com
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -102,7 +102,7 @@ jobs:
 
       - name: Health check Production
         run: |
-          response=$(curl -s -o /dev/null -w "%{http_code}" https://api-todo-VOTRE-PRENOM-prod.onrender.com/health)
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://api-todo-valentin-dauvier-prod.onrender.com/health)
           if [ "$response" -eq 200 ]; then
             echo "Production is healthy"
           else
@@ -137,4 +137,4 @@ jobs:
         run: |
           echo "Deployment to production complete!"
           echo "Version: ${{ steps.tag.outputs.new_version }}"
-          echo "URL: https://api-todo-VOTRE-PRENOM-prod.onrender.com"
+          echo "URL: https://api-todo-valentin-dauvier-prod.onrender.com"
