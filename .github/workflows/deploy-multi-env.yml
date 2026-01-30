@@ -84,9 +84,10 @@ jobs:
       - name: Create Version Tag
         id: tag
         run: |
+          git fetch --tags
           tag_count=$(git tag | grep -c "^v" || echo "0")
           new_version="v1.0.$((tag_count + 1))"
-          echo "TAG_NAME=$new_version" >> $GITHUB_ENV
+          echo "new_version=$new_version" >> $GITHUB_OUTPUT
 
       - name: Trigger Production Deploy
         run: |
@@ -120,8 +121,16 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
 
+          TAG_NAME="${{ steps.tag.outputs.new_version }}"
+          echo "TAG_NAME = $TAG_NAME"
+
+          if [ -z "$TAG_NAME" ]; then
+            echo "ERROR: TAG_NAME is empty"
+            exit 1
+          fi
+
           if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
-            echo "Tag $TAG_NAME already exists, skipping tag creation"
+            echo "Tag $TAG_NAME already exists, skipping"
           else
             git tag -a "$TAG_NAME" -m "Release $TAG_NAME"
             git push origin "$TAG_NAME"
