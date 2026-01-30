@@ -11,20 +11,20 @@ let nextId = 3;
 // ========== ROUTES ==========
 // GET / - Page d'accueil
 app.get('/', (req, res) => {
-  const env = process.env.NODE_ENV || 'development';
-  res.json({
-    message: 'API TODO - CI/CD Demo',
-    environment: env, // ← AJOUT
-    version: '1.0.0',
-    endpoints: {
-      'GET /todos': 'Liste des todos',
-      'GET /todos/:id': 'Un todo spécifique',
-      'POST /todos': 'Créer un todo',
-      'PUT /todos/:id': 'Modifier un todo',
-      'DELETE /todos/:id': 'Supprimer un todo',
-      'GET /health': "Status de l'API"
-    }
-  });
+    const env = process.env.NODE_ENV || 'development';
+    res.json({
+        message: 'API TODO - CI/CD Demo',
+        environment: env, // ← AJOUT
+        version: '1.0.0',
+        endpoints: {
+            'GET /todos': 'Liste des todos',
+            'GET /todos/:id': 'Un todo spécifique',
+            'POST /todos': 'Créer un todo',
+            'PUT /todos/:id': 'Modifier un todo',
+            'DELETE /todos/:id': 'Supprimer un todo',
+            'GET /health': "Status de l'API"
+        }
+    });
 });
 // GET /todos - Récupérer tous les todos
 app.get('/todos', (req, res) => {
@@ -95,9 +95,23 @@ app.get('/health', (req, res) => {
         todos_count: todos.length
     });
 });
+
+app.get('/stats', (req, res) => {
+    const completed = todos.filter(t => t.completed).length;
+    const active = todos.filter(t => !t.completed).length;
+    res.json({
+        total: todos.length,
+        completed: completed,
+        active: active,
+        completion_rate: todos.length > 0
+            ? Math.round((completed / todos.length) * 100)
+            : 0
+    });
+});
+
 // Route 404
 app.use((req, res) => {
     res.status(404).json({ error: 'Route non trouvée' });
 });
 
-module.exports = app;
+module.exports = app;// GET /stats - Statistiques
