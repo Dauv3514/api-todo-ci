@@ -87,7 +87,7 @@ jobs:
           git fetch --tags
           tag_count=$(git tag | grep -c "^v" || echo "0")
           new_version="v1.0.$((tag_count + 1))"
-          echo "new_version=$new_version" >> $GITHUB_OUTPUT
+          echo "version=$new_version" >> $GITHUB_OUTPUT
 
       - name: Trigger Production Deploy
         run: |
@@ -121,7 +121,7 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
 
-          TAG_NAME="${{ steps.tag.outputs.new_version }}"
+          TAG_NAME="${{ steps.tag.outputs.version }}"
           echo "TAG_NAME = $TAG_NAME"
 
           if [ -z "$TAG_NAME" ]; then
