@@ -69,65 +69,65 @@ jobs:
         fi
 
   # Job 3 : Deploy Production (seulement sur main)
-deploy-production:
-  name: 🚀 Deploy Production
-  runs-on: ubuntu-latest
-  needs: test
-  if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-  environment:
-    name: production
-    url: https://api-todo-valentin-dauvier-prod.onrender.com
+  deploy-production:
+    name: 🚀 Deploy Production
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment:
+      name: production
+      url: https://api-todo-valentin-dauvier-prod.onrender.com
 
-  steps:
-  - name: 📥 Checkout
-    uses: actions/checkout@v4
-    with:
-      fetch-depth: 0
+    steps:
+    - name: 📥 Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
-  - name: 🏷️ Create & Push Version Tag
-    run: |
-      # Compter les tags existants
-      tag_count=$(git tag | grep -c "^v" || echo "0")
-      new_version="v1.0.$((tag_count + 1))"
-      echo "📌 New version: $new_version"
+    - name: 🏷️ Create & Push Version Tag
+      run: |
+        # Compter les tags existants
+        tag_count=$(git tag | grep -c "^v" || echo "0")
+        new_version="v1.0.$((tag_count + 1))"
+        echo "📌 New version: $new_version"
 
-      # Configurer git
-      git config user.name "GitHub Actions"
-      git config user.email "actions@github.com"
+        # Configurer git
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
 
-      # Créer le tag et le pousser
-      git tag -a "$new_version" -m "Release $new_version"
-      git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }} "$new_version"
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Créer le tag et le pousser
+        git tag -a "$new_version" -m "Release $new_version"
+        git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }} "$new_version"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  - name: 🚀 Trigger Production Deploy
-    run: |
-      response=$(curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_PROD }} -w "%{http_code}" -o /dev/null -s)
-      if [ $response -eq 200 ] || [ $response -eq 201 ] || [ $response -eq 202 ]; then
-        echo "✅ Production deployment triggered successfully (status $response)"
-      else
-        echo "❌ Production deployment failed with status $response"
-        exit 1
-      fi
+    - name: 🚀 Trigger Production Deploy
+      run: |
+        response=$(curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_PROD }} -w "%{http_code}" -o /dev/null -s)
+        if [ $response -eq 200 ] || [ $response -eq 201 ] || [ $response -eq 202 ]; then
+          echo "✅ Production deployment triggered successfully (status $response)"
+        else
+          echo "❌ Production deployment failed with status $response"
+          exit 1
+        fi
 
-  - name: ⏰ Wait for deployment
-    run: |
-      echo "⏱️ Waiting 120 seconds for deployment to complete..."
-      sleep 120
+    - name: ⏰ Wait for deployment
+      run: |
+        echo "⏱️ Waiting 120 seconds for deployment to complete..."
+        sleep 120
 
-  - name: 🔍 Health check Production
-    run: |
-      response=$(curl -s -o /dev/null -w "%{http_code}" https://api-todo-valentin-dauvier-prod.onrender.com/health)
-      if [ $response -eq 200 ]; then
-        echo "✅ Production is healthy"
-      else
-        echo "❌ Production health check failed with status $response"
-        exit 1
-      fi
+    - name: 🔍 Health check Production
+      run: |
+        response=$(curl -s -o /dev/null -w "%{http_code}" https://api-todo-valentin-dauvier-prod.onrender.com/health)
+        if [ $response -eq 200 ]; then
+          echo "✅ Production is healthy"
+        else
+          echo "❌ Production health check failed with status $response"
+          exit 1
+        fi
 
-  - name: 🎉 Deployment Complete
-    run: |
-      echo "🎉 Deployment to production complete!"
-      echo "📌 Version: $new_version"
-      echo "🌐 URL: https://api-todo-valentin-dauvier-prod.onrender.com"
+    - name: 🎉 Deployment Complete
+      run: |
+        echo "🎉 Deployment to production complete!"
+        echo "📌 Version: $new_version"
+        echo "🌐 URL: https://api-todo-valentin-dauvier-prod.onrender.com"
