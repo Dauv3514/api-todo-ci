@@ -85,11 +85,11 @@ jobs:
         fetch-depth: 0
 
     - name: 🏷️ Create Version Tag
-      id: tag  # Vous pouvez garder ou changer l'id si nécessaire
+      id: tag
       run: |
         tag_count=$(git tag | grep -c "^v" || echo "0")
         new_version="v1.0.$((tag_count + 1))"
-        echo "VERSION=$new_version" >> $GITHUB_ENV  # Changement ici : utiliser $GITHUB_ENV
+        echo "version=$new_version" >> $GITHUB_OUTPUT
         echo "📌 New version: $new_version"
 
     - name: 🚀 Trigger Production Deploy
@@ -121,13 +121,13 @@ jobs:
       run: |
         git config user.name "GitHub Actions"
         git config user.email "actions@github.com"
-        git tag -a $VERSION -m "Release $VERSION"  # Utiliser $VERSION
-        git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }} $VERSION  # Utiliser $VERSION
+        git tag -a ${{ steps.tag.outputs.version }} -m "Release ${{ steps.tag.outputs.version }}"
+        git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }} ${{ steps.tag.outputs.version }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: 🎉 Deployment Complete
       run: |
         echo "🎉 Deployment to production complete!"
-        echo "📌 Version: $VERSION"  # Utiliser $VERSION
+        echo "📌 Version: ${{ steps.tag.outputs.version }}"
         echo "🌐 URL: https://api-todo-valentin-dauvier-prod.onrender.com"
