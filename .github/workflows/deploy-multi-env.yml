@@ -1,4 +1,74 @@
-# Job 3 : Deploy Production (seulement sur main)
+name: Deploy Multi-Environnements
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  # Job 1 : Tests (toujours exécuté)
+  test:
+    name: 🧪 Tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 📥 Checkout
+      uses: actions/checkout@v4
+
+    - name: 📦 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: 📚 Install dependencies
+      run: npm install
+
+    - name: 🧪 Run tests
+      run: npm test
+
+    - name: ✅ Tests passed
+      run: echo "✅ All tests passed successfully"
+
+  # Job 2 : Deploy Staging (seulement sur develop)
+  deploy-staging:
+    name: 🚀 Deploy Staging
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    environment:
+      name: staging
+      url: https://api-todo-valentin-dauvier-staging.onrender.com
+
+    steps:
+    - name: 🚀 Trigger Staging Deploy
+      run: |
+        response=$(curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_STAGING }} -w "%{http_code}" -o /dev/null -s)
+        if [ $response -eq 200 ] || [ $response -eq 201 ] || [ $response -eq 202 ]; then
+          echo "✅ Staging deployment triggered successfully (status $response)"
+        else
+          echo "❌ Staging deployment failed with status $response"
+          exit 1
+        fi
+
+    - name: ⏰ Wait for deployment
+      run: |
+        echo "⏱️ Waiting 120 seconds for deployment to complete..."
+        sleep 120
+
+    - name: 🔍 Health check Staging
+      run: |
+        response=$(curl -s -o /dev/null -w "%{http_code}" https://api-todo-valentin-dauvier-staging.onrender.com/health)
+        if [ $response -eq 200 ]; then
+          echo "✅ Staging is healthy"
+        else
+          echo "⚠️ Staging health check returned $response"
+        fi
+
+  # Job 3 : Deploy Production (seulement sur main)
 deploy-production:
   name: 🚀 Deploy Production
   runs-on: ubuntu-latest
