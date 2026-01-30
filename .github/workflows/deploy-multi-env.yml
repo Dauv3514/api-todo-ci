@@ -83,11 +83,11 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
-
     - name: 🏷️ Create & Push Version Tag
       run: |
-        # Compter les tags existants
-        tag_count=$(git tag | grep -c "^v" || echo "0")
+        # Compter les tags existants et forcer 0 si vide
+        tag_count=$(git tag | grep -c "^v" || echo 0)
+        tag_count=${tag_count:-0}
         new_version="v1.0.$((tag_count + 1))"
         echo "📌 New version: $new_version"
 
