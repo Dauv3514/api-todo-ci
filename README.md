@@ -50,3 +50,4 @@ Le pipeline s'exécute automatiquement à chaque push :
 4. **Deploy** : Déploiement automatique sur Render (seulement sur `main`)
 ## Projet réalisé dans le cadre du cours CI/CD
 **MyDigitalSchool - Janvier 2026**
+// trigger tag creation
