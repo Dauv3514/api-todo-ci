@@ -83,27 +83,14 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    - name: 🏷️ Create & Push Version Tag
+
+    - name: 🏷️ Create Version Tag
+      id: tag
       run: |
-        # Compter les tags existants, et forcer 0 si vide
-        tag_count=$(git tag | grep -c "^v")
-        if [ -z "$tag_count" ]; then
-          tag_count=0
-        fi
-
-        # Créer le nouveau tag
+        tag_count=$(git tag | grep -c "^v" || echo "0")
         new_version="v1.0.$((tag_count + 1))"
+        echo "version=$new_version" >> $GITHUB_OUTPUT
         echo "📌 New version: $new_version"
-
-        # Configurer git
-        git config user.name "GitHub Actions"
-        git config user.email "actions@github.com"
-
-        # Créer le tag et le pousser
-        git tag -a "$new_version" -m "Release $new_version"
-        git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }} "$new_version"
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: 🚀 Trigger Production Deploy
       run: |
@@ -130,8 +117,17 @@ jobs:
           exit 1
         fi
 
+    - name: 🏷️ Push Version Tag
+      run: |
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        git tag -a ${{ steps.tag.outputs.version }} -m "Release ${{ steps.tag.outputs.version }}"
+        git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }} ${{ steps.tag.outputs.version }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     - name: 🎉 Deployment Complete
       run: |
         echo "🎉 Deployment to production complete!"
-        echo "📌 Version: $new_version"
+        echo "📌 Version: ${{ steps.tag.outputs.version }}"
         echo "🌐 URL: https://api-todo-valentin-dauvier-prod.onrender.com"
