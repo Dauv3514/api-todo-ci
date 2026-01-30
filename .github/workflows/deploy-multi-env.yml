@@ -10,30 +10,29 @@ env:
   NODE_VERSION: '18'
 
 jobs:
-  # Job 1 : Tests (toujours exécuté)
+  # Job 1 : Tests
   test:
     name: 🧪 Tests
     runs-on: ubuntu-latest
-
     steps:
-    - name: 📥 Checkout
-      uses: actions/checkout@v4
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
 
-    - name: 📦 Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
 
-    - name: 📚 Install dependencies
-      run: npm install
+      - name: 📚 Install dependencies
+        run: npm install
 
-    - name: 🧪 Run tests
-      run: npm test
+      - name: 🧪 Run tests
+        run: npm test
 
-    - name: ✅ Tests passed
-      run: echo "✅ All tests passed successfully"
+      - name: ✅ Tests passed
+        run: echo "✅ All tests passed successfully"
 
-  # Job 2 : Deploy Staging (seulement sur develop)
+  # Job 2 : Deploy Staging (develop uniquement)
   deploy-staging:
     name: 🚀 Deploy Staging
     runs-on: ubuntu-latest
@@ -42,33 +41,30 @@ jobs:
     environment:
       name: staging
       url: https://api-todo-valentin-dauvier-staging.onrender.com
-
     steps:
-    - name: 🚀 Trigger Staging Deploy
-      run: |
-        response=$(curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_STAGING }} -w "%{http_code}" -o /dev/null -s)
-        if [ $response -eq 200 ] || [ $response -eq 201 ] || [ $response -eq 202 ]; then
-          echo "✅ Staging deployment triggered successfully (status $response)"
-        else
-          echo "❌ Staging deployment failed with status $response"
-          exit 1
-        fi
+      - name: 🚀 Trigger Staging Deploy
+        run: |
+          response=$(curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_STAGING }} -w "%{http_code}" -o /dev/null -s)
+          if [[ "$response" =~ ^(200|201|202)$ ]]; then
+            echo "✅ Staging deployment triggered successfully (status $response)"
+          else
+            echo "❌ Staging deployment failed with status $response"
+            exit 1
+          fi
 
-    - name: ⏰ Wait for deployment
-      run: |
-        echo "⏱️ Waiting 120 seconds for deployment to complete..."
-        sleep 120
+      - name: ⏰ Wait for deployment
+        run: sleep 120
 
-    - name: 🔍 Health check Staging
-      run: |
-        response=$(curl -s -o /dev/null -w "%{http_code}" https://api-todo-valentin-dauvier-staging.onrender.com/health)
-        if [ $response -eq 200 ]; then
-          echo "✅ Staging is healthy"
-        else
-          echo "⚠️ Staging health check returned $response"
-        fi
+      - name: 🔍 Health check Staging
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://api-todo-valentin-dauvier-staging.onrender.com/health)
+          if [ "$response" -eq 200 ]; then
+            echo "✅ Staging is healthy"
+          else
+            echo "⚠️ Staging health check returned $response"
+          fi
 
-  # Job 3 : Deploy Production (seulement sur main)
+  # Job 3 : Deploy Production (main uniquement)
   deploy-production:
     name: 🚀 Deploy Production
     runs-on: ubuntu-latest
@@ -77,57 +73,56 @@ jobs:
     environment:
       name: production
       url: https://api-todo-valentin-dauvier-prod.onrender.com
-
     steps:
-    - name: 📥 Checkout
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: 🏷️ Create Version Tag
-      id: tag
-      run: |
-        tag_count=$(git tag | grep -c "^v" || echo "0")
-        new_version="v1.0.$((tag_count + 1))"
-        echo "version=$new_version" >> $GITHUB_OUTPUT
-        echo "📌 New version: $new_version"
+      - name: 🏷️ Create Version Tag
+        id: tag
+        run: |
+          # Compter les tags existants commençant par v
+          tag_count=$(git tag | grep -c "^v" || echo 0)
+          # Créer la nouvelle version
+          new_version="v1.0.$((tag_count + 1))"
+          echo "VERSION=$new_version" >> $GITHUB_ENV
+          echo "📌 New version: $new_version"
 
-    - name: 🚀 Trigger Production Deploy
-      run: |
-        response=$(curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_PROD }} -w "%{http_code}" -o /dev/null -s)
-        if [ $response -eq 200 ] || [ $response -eq 201 ] || [ $response -eq 202 ]; then
-          echo "✅ Production deployment triggered successfully (status $response)"
-        else
-          echo "❌ Production deployment failed with status $response"
-          exit 1
-        fi
+      - name: 🚀 Trigger Production Deploy
+        run: |
+          response=$(curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_PROD }} -w "%{http_code}" -o /dev/null -s)
+          if [[ "$response" =~ ^(200|201|202)$ ]]; then
+            echo "✅ Production deployment triggered successfully (status $response)"
+          else
+            echo "❌ Production deployment failed with status $response"
+            exit 1
+          fi
 
-    - name: ⏰ Wait for deployment
-      run: |
-        echo "⏱️ Waiting 120 seconds for deployment to complete..."
-        sleep 120
+      - name: ⏰ Wait for deployment
+        run: sleep 120
 
-    - name: 🔍 Health check Production
-      run: |
-        response=$(curl -s -o /dev/null -w "%{http_code}" https://api-todo-valentin-dauvier-prod.onrender.com/health)
-        if [ $response -eq 200 ]; then
-          echo "✅ Production is healthy"
-        else
-          echo "❌ Production health check failed with status $response"
-          exit 1
-        fi
+      - name: 🔍 Health check Production
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://api-todo-valentin-dauvier-prod.onrender.com/health)
+          if [ "$response" -eq 200 ]; then
+            echo "✅ Production is healthy"
+          else
+            echo "❌ Production health check failed with status $response"
+            exit 1
+          fi
 
-    - name: 🏷️ Push Version Tag
-      run: |
-        git config user.name "GitHub Actions"
-        git config user.email "actions@github.com"
-        git tag -a ${{ steps.tag.outputs.version }} -m "Release ${{ steps.tag.outputs.version }}"
-        git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }} ${{ steps.tag.outputs.version }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: 🏷️ Push Version Tag
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git tag -a "$VERSION" -m "Release $VERSION"
+          git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }} "$VERSION"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: 🎉 Deployment Complete
-      run: |
-        echo "🎉 Deployment to production complete!"
-        echo "📌 Version: ${{ steps.tag.outputs.version }}"
-        echo "🌐 URL: https://api-todo-valentin-dauvier-prod.onrender.com"
+      - name: 🎉 Deployment Complete
+        run: |
+          echo "🎉 Deployment to production complete!"
+          echo "📌 Version: $VERSION"
+          echo "🌐 URL: https://api-todo-valentin-dauvier-prod.onrender.com"
